@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CreateMeetingInput, UpdateMeetingInput, CheckInInput } from '@/lib/validations/meetings';
 import { queryKeys } from '@/lib/query-keys';
+import { Meeting, MeetingWithAttendances, Attendance } from '@/lib/types';
 
 const API_URL = '/api/meetings';
 
 export function useMeetings(from?: string, to?: string) {
-  return useQuery({
+  return useQuery<Meeting[]>({
     queryKey: queryKeys.meetings.list({ from, to }),
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -20,7 +21,7 @@ export function useMeetings(from?: string, to?: string) {
 }
 
 export function useMeeting(id: string) {
-  return useQuery({
+  return useQuery<MeetingWithAttendances>({
     queryKey: queryKeys.meetings.detail(id),
     queryFn: async () => {
       const res = await fetch(`${API_URL}/${id}`);
@@ -34,7 +35,7 @@ export function useMeeting(id: string) {
 export function useCreateMeeting() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Meeting, Error, CreateMeetingInput>({
     mutationFn: async (data: CreateMeetingInput) => {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -56,7 +57,7 @@ export function useCreateMeeting() {
 export function useUpdateMeeting(id: string) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Meeting, Error, UpdateMeetingInput>({
     mutationFn: async (data: UpdateMeetingInput) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'PATCH',
@@ -79,7 +80,7 @@ export function useUpdateMeeting(id: string) {
 export function useDeleteMeeting() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<{ success: boolean }, Error, string>({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',
@@ -99,7 +100,7 @@ export function useDeleteMeeting() {
 export function useCheckIn(meetingId: string) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Attendance, Error, CheckInInput>({
     mutationFn: async (data: CheckInInput) => {
       const res = await fetch(`${API_URL}/${meetingId}/check-in`, {
         method: 'POST',

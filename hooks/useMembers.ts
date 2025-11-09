@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RegisterMemberInput, UpdateMemberInput } from '@/lib/validations/members';
 import { queryKeys } from '@/lib/query-keys';
+import { Member, PaginatedResponse } from '@/lib/types';
 
 const API_URL = '/api/members';
 
 export function useMembers(status?: string, page = 1, limit = 20) {
-  return useQuery({
+  return useQuery<PaginatedResponse<Member>>({
     queryKey: queryKeys.members.list({ status, page, limit }),
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -25,7 +26,7 @@ export function useMembers(status?: string, page = 1, limit = 20) {
 }
 
 export function useMember(id: string) {
-  return useQuery({
+  return useQuery<Member>({
     queryKey: queryKeys.members.detail(id),
     queryFn: async () => {
       const res = await fetch(`${API_URL}/${id}`);
@@ -37,7 +38,7 @@ export function useMember(id: string) {
 }
 
 export function useValidateToken(token: string) {
-  return useQuery({
+  return useQuery<{ valid: boolean; member?: Member }>({
     queryKey: queryKeys.members.validateToken(token),
     queryFn: async () => {
       const res = await fetch(`${API_URL}/validate-token?token=${token}`);
@@ -51,7 +52,7 @@ export function useValidateToken(token: string) {
 export function useRegisterMember() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Member, Error, RegisterMemberInput>({
     mutationFn: async (data: RegisterMemberInput) => {
       const res = await fetch(`${API_URL}/register`, {
         method: 'POST',
@@ -70,7 +71,7 @@ export function useRegisterMember() {
 export function useUpdateMember(id: string) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Member, Error, UpdateMemberInput>({
     mutationFn: async (data: UpdateMemberInput) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'PATCH',
@@ -93,7 +94,7 @@ export function useUpdateMember(id: string) {
 export function useDeleteMember() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<{ success: boolean }, Error, string>({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',

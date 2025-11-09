@@ -1,8 +1,44 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-keys';
 
+export type MemberDashboard = {
+  attendanceRate: number;
+  totalMeetings: number;
+  upcomingMeetings: number;
+  thanksReceived: number;
+  thanksGiven: number;
+};
+
+export type GroupDashboard = {
+  stats: {
+    totalMembers: number;
+    activeMembers: number;
+    totalMeetings: number;
+    upcomingMeetings: number;
+    averageAttendance?: number;
+    totalReferrals?: number;
+    closedReferrals?: number;
+    totalBusinessGenerated?: number;
+    monthlyGrowth?: number;
+  };
+  topPerformers?: Array<{
+    member: {
+      id: string;
+      name: string;
+    };
+    referralsClosed: number;
+    businessGenerated: number;
+  }>;
+  recentActivity?: any[];
+};
+
+export type Reports = {
+  period: string;
+  data: any[];
+};
+
 export function useMemberDashboard(memberId: string) {
-  return useQuery({
+  return useQuery<MemberDashboard>({
     queryKey: queryKeys.dashboard.member(memberId),
     queryFn: async () => {
       const res = await fetch(`/api/dashboard/member/${memberId}`);
@@ -14,7 +50,7 @@ export function useMemberDashboard(memberId: string) {
 }
 
 export function useGroupDashboard() {
-  return useQuery({
+  return useQuery<GroupDashboard>({
     queryKey: queryKeys.dashboard.group(),
     queryFn: async () => {
       const res = await fetch('/api/dashboard/group');
@@ -25,7 +61,7 @@ export function useGroupDashboard() {
 }
 
 export function useReports(period?: string, from?: string, to?: string) {
-  return useQuery({
+  return useQuery<Reports>({
     queryKey: queryKeys.dashboard.reports({ period, from, to }),
     queryFn: async () => {
       const params = new URLSearchParams();

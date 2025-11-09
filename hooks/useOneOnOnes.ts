@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CreateOneOnOneInput, UpdateOneOnOneInput } from '@/lib/validations/one-on-ones';
 import { queryKeys } from '@/lib/query-keys';
+import { OneOnOneWithMembers, OneOnOne } from '@/lib/types';
 
 const API_URL = '/api/one-on-ones';
 
 export function useOneOnOnes(memberId?: string, status?: string) {
-  return useQuery({
+  return useQuery<OneOnOneWithMembers[]>({
     queryKey: queryKeys.oneOnOnes.list({ memberId, status }),
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -20,7 +21,7 @@ export function useOneOnOnes(memberId?: string, status?: string) {
 }
 
 export function useOneOnOne(id: string) {
-  return useQuery({
+  return useQuery<OneOnOneWithMembers>({
     queryKey: queryKeys.oneOnOnes.detail(id),
     queryFn: async () => {
       const res = await fetch(`${API_URL}/${id}`);
@@ -34,7 +35,7 @@ export function useOneOnOne(id: string) {
 export function useCreateOneOnOne() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<OneOnOne, Error, CreateOneOnOneInput>({
     mutationFn: async (data: CreateOneOnOneInput) => {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -53,7 +54,7 @@ export function useCreateOneOnOne() {
 export function useUpdateOneOnOne(id: string) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<OneOnOne, Error, UpdateOneOnOneInput>({
     mutationFn: async (data: UpdateOneOnOneInput) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'PATCH',

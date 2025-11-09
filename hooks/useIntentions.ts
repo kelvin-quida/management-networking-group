@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CreateIntentionInput, ApproveIntentionInput, RejectIntentionInput } from '@/lib/validations/intentions';
 import { queryKeys } from '@/lib/query-keys';
+import { Intention, PaginatedResponse } from '@/lib/types';
 
 const API_URL = '/api/intentions';
 
 export function useIntentions(status?: string, page = 1, limit = 20) {
-  return useQuery({
+  return useQuery<PaginatedResponse<Intention>>({
     queryKey: queryKeys.intentions.list({ status, page, limit }),
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -27,7 +28,7 @@ export function useIntentions(status?: string, page = 1, limit = 20) {
 export function useCreateIntention() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Intention, Error, CreateIntentionInput>({
     mutationFn: async (data: CreateIntentionInput) => {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -46,7 +47,7 @@ export function useCreateIntention() {
 export function useApproveIntention() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<{ member: any; invitation: any }, Error, ApproveIntentionInput>({
     mutationFn: async (data: ApproveIntentionInput) => {
       const res = await fetch(`${API_URL}/approve`, {
         method: 'POST',
@@ -69,7 +70,7 @@ export function useApproveIntention() {
 export function useRejectIntention() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Intention, Error, RejectIntentionInput>({
     mutationFn: async (data: RejectIntentionInput) => {
       const res = await fetch(`${API_URL}/reject`, {
         method: 'POST',

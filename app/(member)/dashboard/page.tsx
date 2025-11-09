@@ -1,6 +1,8 @@
 'use client';
 
 import { useGroupDashboard } from '@/hooks/useDashboard';
+import { StatsCard } from '@/components/features/dashboard/StatsCard';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
 
 export default function DashboardPage() {
   const { data, isLoading, error } = useGroupDashboard();
@@ -180,8 +182,8 @@ export default function DashboardPage() {
                 <p className={`text-xl font-semibold ${
                   (stats?.monthlyGrowth || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {stats?.monthlyGrowth >= 0 ? '+' : ''}
-                  {stats?.monthlyGrowth?.toFixed(1) || 0}%
+                  {(stats?.monthlyGrowth ?? 0) >= 0 ? '+' : ''}
+                  {(stats?.monthlyGrowth ?? 0).toFixed(1)}%
                 </p>
               </div>
             </div>

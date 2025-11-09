@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-keys';
+import { EmailLog } from '@/lib/types';
 
 export function useEmails(limit = 50) {
-  return useQuery({
+  return useQuery<EmailLog[]>({
     queryKey: queryKeys.emails.list(limit),
     queryFn: async () => {
       const res = await fetch(`/api/emails?limit=${limit}`, {

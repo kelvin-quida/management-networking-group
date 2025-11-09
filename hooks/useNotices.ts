@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CreateNoticeInput, UpdateNoticeInput } from '@/lib/validations/notices';
 import { queryKeys } from '@/lib/query-keys';
+import { Notice } from '@/lib/types';
 
 const API_URL = '/api/notices';
 
 export function useNotices(type?: string, active?: boolean) {
-  return useQuery({
+  return useQuery<Notice[]>({
     queryKey: queryKeys.notices.list({ type, active }),
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -20,7 +21,7 @@ export function useNotices(type?: string, active?: boolean) {
 }
 
 export function useNotice(id: string) {
-  return useQuery({
+  return useQuery<Notice>({
     queryKey: queryKeys.notices.detail(id),
     queryFn: async () => {
       const res = await fetch(`${API_URL}/${id}`);
@@ -34,7 +35,7 @@ export function useNotice(id: string) {
 export function useCreateNotice() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Notice, Error, CreateNoticeInput>({
     mutationFn: async (data: CreateNoticeInput) => {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -56,7 +57,7 @@ export function useCreateNotice() {
 export function useUpdateNotice(id: string) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Notice, Error, UpdateNoticeInput>({
     mutationFn: async (data: UpdateNoticeInput) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'PATCH',
@@ -79,7 +80,7 @@ export function useUpdateNotice(id: string) {
 export function useDeleteNotice() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<{ success: boolean }, Error, string>({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',

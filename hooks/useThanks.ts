@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CreateThankInput } from '@/lib/validations/thanks';
 import { queryKeys } from '@/lib/query-keys';
+import { ThankWithMembers } from '@/lib/types';
 
 const API_URL = '/api/thanks';
 
 export function useThanks(memberId?: string) {
-  return useQuery({
+  return useQuery<ThankWithMembers[]>({
     queryKey: queryKeys.thanks.list({ memberId }),
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -19,7 +20,7 @@ export function useThanks(memberId?: string) {
 }
 
 export function useThank(id: string) {
-  return useQuery({
+  return useQuery<ThankWithMembers>({
     queryKey: queryKeys.thanks.detail(id),
     queryFn: async () => {
       const res = await fetch(`${API_URL}/${id}`);
@@ -33,7 +34,7 @@ export function useThank(id: string) {
 export function useCreateThank() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<ThankWithMembers, Error, CreateThankInput>({
     mutationFn: async (data: CreateThankInput) => {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -52,7 +53,7 @@ export function useCreateThank() {
 export function useDeleteThank() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<{ success: boolean }, Error, string>({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',

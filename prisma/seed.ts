@@ -10,7 +10,6 @@ async function main() {
   await prisma.membership.deleteMany()
   await prisma.oneOnOne.deleteMany()
   await prisma.thank.deleteMany()
-  await prisma.referral.deleteMany()
   await prisma.attendance.deleteMany()
   await prisma.meeting.deleteMany()
   await prisma.notice.deleteMany()
@@ -155,40 +154,12 @@ async function main() {
     },
   })
 
-  console.log('🤝 Criando indicações de negócios...')
-  
-  const referral1 = await prisma.referral.create({
-    data: {
-      fromMemberId: member1.id,
-      toMemberId: member2.id,
-      clientName: 'Empresa ABC Ltda',
-      clientContact: 'contato@empresaabc.com',
-      description: 'Cliente interessado em serviços de marketing digital',
-      estimatedValue: 15000.00,
-      status: 'IN_NEGOTIATION',
-    },
-  })
-
-  const referral2 = await prisma.referral.create({
-    data: {
-      fromMemberId: member2.id,
-      toMemberId: member1.id,
-      clientName: 'Tech Startup XYZ',
-      clientContact: 'contato@techxyz.com',
-      description: 'Startup precisa de consultoria em tecnologia',
-      estimatedValue: 25000.00,
-      actualValue: 28000.00,
-      status: 'CLOSED',
-    },
-  })
-
   console.log('🙏 Criando agradecimentos...')
   
   await prisma.thank.create({
     data: {
       fromMemberId: member1.id,
       toMemberId: member2.id,
-      referralId: referral2.id,
       message: 'Muito obrigado pela indicação! O negócio foi fechado com sucesso e superou nossas expectativas.',
       value: 28000.00,
       isPublic: true,
@@ -277,7 +248,6 @@ async function main() {
   console.log(`   - ${await prisma.notice.count()} avisos`)
   console.log(`   - ${await prisma.meeting.count()} reuniões`)
   console.log(`   - ${await prisma.attendance.count()} presenças`)
-  console.log(`   - ${await prisma.referral.count()} indicações`)
   console.log(`   - ${await prisma.thank.count()} agradecimentos`)
   console.log(`   - ${await prisma.oneOnOne.count()} reuniões 1-on-1`)
   console.log(`   - ${await prisma.membership.count()} mensalidades`)

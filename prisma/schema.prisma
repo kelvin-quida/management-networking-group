@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Intention {
+  id        String           @id @default(cuid())
+  name      String
+  email     String           @unique
+  phone     String?
+  message   String?
+  status    IntentionStatus  @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  member    Member?
+
+  @@index([status])
+  @@index([email])
+}
+
+model Member {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  phone        String?
+  company      String?
+  position     String?
+  address      String?
+  city         String?
+  state        String?
+  zipCode      String?
+  birthDate    DateTime?
+  status       MemberStatus @default(INVITED)
+  inviteToken  String       @unique
+  tokenExpiry  DateTime
+  intentionId  String       @unique
+  intention    Intention    @relation(fields: [intentionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  
+  attendances       Attendance[]
+  referralsGiven    Referral[]      @relation("ReferralFrom")
+  referralsReceived Referral[]      @relation("ReferralTo")
+  thanksGiven       Thank[]         @relation("ThankFrom")
+  thanksReceived    Thank[]         @relation("ThankTo")
+  oneOnOnesHost     OneOnOne[]      @relation("OneOnOneHost")
+  oneOnOnesGuest    OneOnOne[]      @relation("OneOnOneGuest")
+  memberships       Membership[]
+
+  @@index([status])
+  @@index([email])
+}
+
+model Notice {
+  id          String       @id @default(cuid())
+  title       String
+  content     String       @db.Text
+  type        NoticeType   @default(INFO)
+  priority    NoticePriority @default(NORMAL)
+  publishedAt DateTime     @default(now())
+  expiresAt   DateTime?
+  createdBy   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([publishedAt])
+  @@index([type])
+}
+
+model Meeting {
+  id          String      @id @default(cuid())
+  title       String
+  description String?     @db.Text
+  date        DateTime
+  location    String?
+  type        MeetingType @default(REGULAR)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  attendances Attendance[]
+
+  @@index([date])
+}
+
+model Attendance {
+  id         String   @id @default(cuid())
+  memberId   String
+  member     Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  meetingId  String
+  meeting    Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  checkedIn  Boolean  @default(false)
+  checkInAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  @@unique([memberId, meetingId])
+  @@index([memberId])
+  @@index([meetingId])
+}
+
+model Referral {
+  id              String         @id @default(cuid())
+  fromMemberId    String
+  fromMember      Member         @relation("ReferralFrom", fields: [fromMemberId], references: [id], onDelete: Cascade)
+  toMemberId      String
+  toMember        Member         @relation("ReferralTo", fields: [toMemberId], references: [id], onDelete: Cascade)
+  clientName      String
+  clientContact   String
+  description     String         @db.Text
+  estimatedValue  Decimal?       @db.Decimal(10, 2)
+  actualValue     Decimal?       @db.Decimal(10, 2)
+  status          ReferralStatus @default(SENT)
+  statusUpdatedAt DateTime       @default(now())
+  notes           String?        @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  thanks          Thank[]
+
+  @@index([fromMemberId])
+  @@index([toMemberId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Thank {
+  id          String   @id @default(cuid())
+  fromMemberId String
+  fromMember  Member   @relation("ThankFrom", fields: [fromMemberId], references: [id], onDelete: Cascade)
+  toMemberId  String
+  toMember    Member   @relation("ThankTo", fields: [toMemberId], references: [id], onDelete: Cascade)
+  referralId  String?
+  referral    Referral? @relation(fields: [referralId], references: [id], onDelete: SetNull)
+  message     String   @db.Text
+  value       Decimal? @db.Decimal(10, 2)
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([fromMemberId])
+  @@index([toMemberId])
+  @@index([createdAt])
+}
+
+model OneOnOne {
+  id          String        @id @default(cuid())
+  hostId      String
+  host        Member        @relation("OneOnOneHost", fields: [hostId], references: [id], onDelete: Cascade)
+  guestId     String
+  guest       Member        @relation("OneOnOneGuest", fields: [guestId], references: [id], onDelete: Cascade)
+  scheduledAt DateTime
+  completedAt DateTime?
+  status      OneOnOneStatus @default(SCHEDULED)
+  notes       String?       @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([hostId])
+  @@index([guestId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+model Membership {
+  id          String           @id @default(cuid())
+  memberId    String
+  member      Member           @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  dueDate     DateTime
+  amount      Decimal          @db.Decimal(10, 2)
+  status      MembershipStatus @default(PENDING)
+  paidAt      DateTime?
+  paymentMethod String?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([memberId])
+  @@index([dueDate])
+  @@index([status])
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  to        String
+  subject   String
+  body      String   @db.Text
+  token     String?
+  sentAt    DateTime @default(now())
+
+  @@index([sentAt])
+}
+
+enum IntentionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MemberStatus {
+  INVITED
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum NoticeType {
+  INFO
+  WARNING
+  URGENT
+  EVENT
+}
+
+enum NoticePriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum MeetingType {
+  REGULAR
+  SPECIAL
+  TRAINING
+  SOCIAL
+}
+
+enum ReferralStatus {
+  SENT
+  IN_NEGOTIATION
+  CLOSED
+  LOST
+}
+
+enum OneOnOneStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum MembershipStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}

@@ -38,7 +38,6 @@ export default function NewMeetingPage() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || ''
         },
         body: JSON.stringify({
           title: formData.title,

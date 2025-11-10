@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createNoticeSchema } from '@/lib/validations/notices';
-import { validateAdminAuth, createUnauthorizedResponse } from '@/lib/auth';
 import { handleError, createSuccessResponse } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
@@ -45,10 +44,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const body = await request.json();
     const data = createNoticeSchema.parse(body);
 

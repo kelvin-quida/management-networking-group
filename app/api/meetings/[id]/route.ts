@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { updateMeetingSchema } from '@/lib/validations/meetings';
-import { validateAdminAuth, createUnauthorizedResponse } from '@/lib/auth';
 import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/utils';
 
 export async function GET(
@@ -43,10 +42,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const { id } = await params;
     const body = await request.json();
     const data = updateMeetingSchema.parse(body);
@@ -85,10 +80,6 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const { id } = await params;
 
     const meeting = await prisma.meeting.findUnique({

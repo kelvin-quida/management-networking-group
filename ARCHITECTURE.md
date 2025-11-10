@@ -166,7 +166,7 @@ graph TB
     MEMBER -->|HTTP/REST| API2
     MEMBER -->|HTTP/REST| API3
     MEMBER -->|HTTP/REST| API4
-    ADMIN -->|Admin Key| AUTH
+    ADMIN -->|Better Auth| AUTH
     ADMIN -->|HTTP/REST| API1
     ADMIN -->|HTTP/REST| API2
     ADMIN -->|HTTP/REST| API5
@@ -398,7 +398,8 @@ src/
 │   │   ├── thanks.ts
 │   │   ├── one-on-ones.ts
 │   │   └── memberships.ts
-│   ├── auth.ts                             # Admin authentication
+│   ├── auth-config.ts                      # Better Auth configuration
+│   ├── auth-client.ts                      # Better Auth client
 │   ├── tokens.ts                           # Token generation/validation
 │   ├── email.ts                            # Email simulation
 │   ├── reports.ts                          # Report generation
@@ -821,7 +822,7 @@ Completa o cadastro de um membro.
 
 ### 4.2 Gestão de Membros (Admin)
 
-**Autenticação:** Header `x-admin-key: <ADMIN_KEY>`
+**Autenticação:** Better Auth com role ADMIN (sessão via cookies)
 
 #### **GET /api/intentions**
 Lista todas as intenções.

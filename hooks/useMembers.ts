@@ -14,11 +14,7 @@ export function useMembers(status?: string, page = 1, limit = 20) {
       params.append('page', page.toString());
       params.append('limit', limit.toString());
 
-      const res = await fetch(`${API_URL}?${params}`, {
-        headers: {
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
-        },
-      });
+      const res = await fetch(`${API_URL}?${params}`);
       if (!res.ok) throw new Error('Failed to fetch members');
       return res.json();
     },
@@ -78,7 +74,6 @@ export function useUpdateMember(id: string) {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
         },
         body: JSON.stringify(data),
       });
@@ -100,15 +95,13 @@ export function useDeleteMember() {
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',
-        headers: {
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
-        },
       });
       if (!res.ok) throw new Error('Failed to delete member');
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.members.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }

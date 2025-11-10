@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { payMembershipSchema } from '@/lib/validations/memberships';
-import { validateAdminAuth, createUnauthorizedResponse } from '@/lib/auth';
 import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/utils';
 
 export async function POST(
@@ -9,10 +8,6 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const { id } = await params;
     const body = await request.json();
     const data = payMembershipSchema.parse(body);

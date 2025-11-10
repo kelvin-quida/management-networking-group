@@ -42,7 +42,6 @@ export function useCreateNotice() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
         },
         body: JSON.stringify(data),
       });
@@ -64,7 +63,6 @@ export function useUpdateNotice(id: string) {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
         },
         body: JSON.stringify(data),
       });
@@ -85,9 +83,6 @@ export function useDeleteNotice() {
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',
-        headers: {
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
-        },
       });
       if (!res.ok) throw new Error('Failed to delete notice');
       return res.json();

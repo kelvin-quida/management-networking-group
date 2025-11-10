@@ -1,17 +1,12 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { approveIntentionSchema } from '@/lib/validations/intentions';
-import { validateAdminAuth, createUnauthorizedResponse } from '@/lib/auth';
 import { generateInviteToken, generateTokenExpiry } from '@/lib/tokens';
 import { sendEmail, createInviteEmailBody } from '@/lib/email';
 import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const body = await request.json();
     const data = approveIntentionSchema.parse(body);
 
@@ -48,6 +43,7 @@ export async function POST(request: NextRequest) {
           inviteToken,
           tokenExpiry,
           intentionId: intention.id,
+          status: existingUser ? 'ACTIVE' : 'INVITED',
         },
       });
 

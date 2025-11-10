@@ -14,11 +14,7 @@ export function useIntentions(status?: string, page = 1, limit = 20) {
       params.append('page', page.toString());
       params.append('limit', limit.toString());
 
-      const res = await fetch(`${API_URL}?${params}`, {
-        headers: {
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
-        },
-      });
+      const res = await fetch(`${API_URL}?${params}`);
       if (!res.ok) throw new Error('Failed to fetch intentions');
       return res.json();
     },
@@ -60,7 +56,6 @@ export function useApproveIntention() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
         },
         body: JSON.stringify(data),
       });
@@ -70,6 +65,7 @@ export function useApproveIntention() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.intentions.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.members.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }
@@ -83,7 +79,6 @@ export function useRejectIntention() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
         },
         body: JSON.stringify(data),
       });
@@ -92,6 +87,7 @@ export function useRejectIntention() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.intentions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }

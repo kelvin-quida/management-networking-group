@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { updateMemberSchema } from '@/lib/validations/members';
-import { validateAdminAuth, createUnauthorizedResponse } from '@/lib/auth';
 import { handleError, createSuccessResponse, createErrorResponse } from '@/lib/utils';
 
 export async function GET(
@@ -46,10 +45,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const { id } = await params;
     const body = await request.json();
     const data = updateMemberSchema.parse(body);
@@ -93,10 +88,6 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const { id } = await params;
 
     const member = await prisma.member.findUnique({

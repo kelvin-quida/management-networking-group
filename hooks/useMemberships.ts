@@ -13,9 +13,7 @@ export function useMemberships(memberId?: string, status?: string) {
       if (memberId) params.append('memberId', memberId);
       if (status) params.append('status', status);
 
-      const res = await fetch(`${API_URL}?${params}`, {
-        headers: { 'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '' },
-      });
+      const res = await fetch(`${API_URL}?${params}`);
       if (!res.ok) throw new Error('Failed to fetch memberships');
       const data = await res.json();
       return data.memberships || [];
@@ -31,7 +29,6 @@ export function useCreateMembership() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
         },
         body: JSON.stringify(data),
       });
@@ -50,7 +47,6 @@ export function usePayMembership(id: string) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
         },
         body: JSON.stringify(data),
       });

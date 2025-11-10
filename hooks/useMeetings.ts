@@ -42,7 +42,6 @@ export function useCreateMeeting() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
         },
         body: JSON.stringify(data),
       });
@@ -51,6 +50,7 @@ export function useCreateMeeting() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.meetings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }
@@ -64,7 +64,6 @@ export function useUpdateMeeting(id: string) {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
         },
         body: JSON.stringify(data),
       });
@@ -85,15 +84,13 @@ export function useDeleteMeeting() {
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',
-        headers: {
-          'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '',
-        },
       });
       if (!res.ok) throw new Error('Failed to delete meeting');
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.meetings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }
@@ -114,6 +111,7 @@ export function useCheckIn(meetingId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.meetings.detail(meetingId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.attendances.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }

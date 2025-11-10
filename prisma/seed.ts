@@ -13,6 +13,9 @@ async function main() {
   await prisma.attendance.deleteMany()
   await prisma.meeting.deleteMany()
   await prisma.notice.deleteMany()
+  await prisma.session.deleteMany()
+  await prisma.account.deleteMany()
+  await prisma.user.deleteMany()
   await prisma.member.deleteMany()
   await prisma.intention.deleteMany()
 
@@ -87,6 +90,58 @@ async function main() {
       intentionId: intention2.id,
     },
   })
+
+  console.log('👤 Criando usuários vinculados aos membros...')
+  
+  await prisma.user.create({
+    data: {
+      name: 'João Silva',
+      email: 'joao.silva@example.com',
+      emailVerified: true,
+      role: 'MEMBER',
+      memberId: member1.id,
+    },
+  })
+
+  const joaoUser = await prisma.user.findUnique({
+    where: { email: 'joao.silva@example.com' },
+  })
+  
+  if (joaoUser) {
+    await prisma.account.create({
+      data: {
+        userId: joaoUser.id,
+        accountId: joaoUser.id,
+        providerId: 'credential',
+        password: '$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u', // senha: password123
+      },
+    })
+  }
+
+  await prisma.user.create({
+    data: {
+      name: 'Maria Santos',
+      email: 'maria.santos@example.com',
+      emailVerified: true,
+      role: 'MEMBER',
+      memberId: member2.id,
+    },
+  })
+
+  const mariaUser = await prisma.user.findUnique({
+    where: { email: 'maria.santos@example.com' },
+  })
+  
+  if (mariaUser) {
+    await prisma.account.create({
+      data: {
+        userId: mariaUser.id,
+        accountId: mariaUser.id,
+        providerId: 'credential',
+        password: '$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJptJ/op0lSsvqNu/1u', // senha: password123
+      },
+    })
+  }
 
   console.log('📢 Criando avisos...')
   
@@ -245,6 +300,7 @@ async function main() {
   console.log('\n📊 Resumo:')
   console.log(`   - ${await prisma.intention.count()} intenções`)
   console.log(`   - ${await prisma.member.count()} membros`)
+  console.log(`   - ${await prisma.user.count()} usuários`)
   console.log(`   - ${await prisma.notice.count()} avisos`)
   console.log(`   - ${await prisma.meeting.count()} reuniões`)
   console.log(`   - ${await prisma.attendance.count()} presenças`)

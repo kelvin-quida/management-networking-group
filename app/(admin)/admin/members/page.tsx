@@ -1,14 +1,30 @@
 'use client';
 
-import { useMembers } from '@/hooks/useMembers';
+import { useMembers, useDeleteMember } from '@/hooks/useMembers';
 import { MemberCard } from '@/components/features/members/MemberCard';
 import { Container } from '@/components/layout/Container';
 import { Input } from '@/components/ui';
+import { useToast } from '@/components/ui/Toast';
 import { useState } from 'react';
 
 export default function AdminMembersPage() {
   const { data: members, isLoading } = useMembers();
+  const deleteMember = useDeleteMember();
+  const { showToast } = useToast();
   const [search, setSearch] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await deleteMember.mutateAsync(id);
+      showToast('Membro removido com sucesso!', 'success');
+    } catch (error) {
+      showToast('Erro ao remover membro. Tente novamente.', 'error');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const filteredMembers = members?.data.filter(member =>
     member.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -42,7 +58,13 @@ export default function AdminMembersPage() {
       ) : filteredMembers && filteredMembers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredMembers.map((member) => (
-            <MemberCard key={member.id} member={member} />
+            <div key={member.id} className={deletingId === member.id ? 'opacity-50 pointer-events-none' : ''}>
+              <MemberCard 
+                member={member} 
+                showActions={true}
+                onDelete={handleDelete}
+              />
+            </div>
           ))}
         </div>
       ) : (

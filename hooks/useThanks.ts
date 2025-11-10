@@ -47,6 +47,7 @@ export function useCreateThank() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.thanks.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }
@@ -64,6 +65,7 @@ export function useDeleteThank() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.thanks.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }

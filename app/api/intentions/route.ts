@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createIntentionSchema } from '@/lib/validations/intentions';
-import { validateAdminAuth, createUnauthorizedResponse } from '@/lib/auth';
 import { handleError, createSuccessResponse, parsePaginationParams, calculatePagination } from '@/lib/utils';
 
 export async function POST(request: NextRequest) {
@@ -51,10 +50,6 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const { page, limit } = parsePaginationParams(searchParams);

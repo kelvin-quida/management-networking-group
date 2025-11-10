@@ -1,15 +1,10 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createMembershipSchema } from '@/lib/validations/memberships';
-import { validateAdminAuth, createUnauthorizedResponse } from '@/lib/auth';
 import { handleError, createSuccessResponse } from '@/lib/utils';
 
 export async function GET(request: NextRequest) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const { searchParams } = new URL(request.url);
     const memberId = searchParams.get('memberId');
     const status = searchParams.get('status');
@@ -40,10 +35,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    if (!validateAdminAuth(request)) {
-      return createUnauthorizedResponse();
-    }
-
     const body = await request.json();
     const data = createMembershipSchema.parse(body);
 

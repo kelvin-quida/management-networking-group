@@ -130,10 +130,8 @@ export const IntentionForm = () => {
           type="tel"
           value={formData.phone}
           onChange={handleChange}
-          placeholder="+55 11 98765-4321"
+          placeholder=""
           className={errors.phone ? 'border-red-500' : ''}
-          disabled={!!user}
-          readOnly={!!user}
         />
         {errors.phone && (
           <p className="text-xs text-red-600 mt-1">{errors.phone}</p>

@@ -2,20 +2,6 @@
 
 Sistema completo de gerenciamento para grupos de networking, desenvolvido com Next.js 15, Prisma, PostgreSQL e Better Auth.
 
-## 🚀 Tecnologias
-
-- **Next.js 15** - Framework React com App Router e Turbopack
-- **TypeScript** - Tipagem estática
-- **Prisma** - ORM para banco de dados
-- **PostgreSQL** - Banco de dados relacional
-- **Better Auth** - Sistema de autenticação moderno com roles
-- **TanStack Query** - Gerenciamento de estado assíncrono
-- **Tailwind CSS** - Estilização
-- **Radix UI** - Componentes acessíveis (Dialog, Select, Toast)
-- **Zod** - Validação de schemas
-- **Jest** - Framework de testes
-- **React Testing Library** - Testes de componentes
-
 ## 📋 Pré-requisitos
 
 - Node.js 18+

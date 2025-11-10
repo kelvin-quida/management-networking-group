@@ -17,7 +17,8 @@ export function useMemberships(memberId?: string, status?: string) {
         headers: { 'x-admin-key': process.env.NEXT_PUBLIC_ADMIN_KEY || '' },
       });
       if (!res.ok) throw new Error('Failed to fetch memberships');
-      return res.json();
+      const data = await res.json();
+      return data.memberships || [];
     },
   });
 }

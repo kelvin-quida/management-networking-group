@@ -3,17 +3,13 @@
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Footer } from '@/components/layout/Footer';
+import { AdminGuard } from '@/components/auth/AdminGuard';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = {
-    name: 'Administrador',
-    role: 'admin' as const,
-  };
-
   const sidebarItems = [
     {
       label: 'Dashboard',
@@ -50,15 +46,17 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header title="Painel Administrativo" user={user} />
-      <div className="flex flex-1">
-        <Sidebar items={sidebarItems} />
-        <main className="flex-1 p-8">
-          {children}
-        </main>
+    <AdminGuard>
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Header title="Painel Administrativo" />
+        <div className="flex flex-1">
+          <Sidebar items={sidebarItems} />
+          <main className="flex-1 p-8">
+            {children}
+          </main>
+        </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </AdminGuard>
   );
 }

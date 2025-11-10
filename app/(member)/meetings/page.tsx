@@ -1,29 +1,60 @@
 'use client';
 
+import { useState } from 'react';
 import { useMeetings } from '@/hooks/useMeetings';
+import { useAttendances } from '@/hooks/useAttendances';
 import { MeetingCard } from '@/components/features/meetings/MeetingCard';
 import { Container } from '@/components/layout/Container';
 import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/query-keys';
 
 export default function MeetingsPage() {
   const { data: meetings, isLoading } = useMeetings();
   const { showToast } = useToast();
+  const { user } = useAuth();
+  const { data: attendances } = useAttendances(user?.memberId || undefined);
+  const queryClient = useQueryClient();
+  const [checkingIn, setCheckingIn] = useState<string | null>(null);
+
+  const checkedInMeetings = new Set(
+    attendances
+      ?.filter(a => a.checkedIn)
+      .map(a => a.meetingId) || []
+  );
 
   const handleCheckIn = async (meetingId: string) => {
+    if (!user?.memberId) {
+      showToast('Você precisa ter um perfil de membro para fazer check-in.', 'error');
+      return;
+    }
+
+    setCheckingIn(meetingId);
+
     try {
-      const memberId = 'current-member-id';
-      
       const response = await fetch(`/api/meetings/${meetingId}/check-in`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId }),
+        body: JSON.stringify({ memberId: user.memberId }),
       });
 
-      if (!response.ok) throw new Error();
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao fazer check-in');
+      }
 
       showToast('Check-in realizado com sucesso!', 'success');
+      
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendances.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.meetings.all });
     } catch (error) {
-      showToast('Erro ao fazer check-in.', 'error');
+      showToast(
+        error instanceof Error ? error.message : 'Erro ao fazer check-in.',
+        'error'
+      );
+    } finally {
+      setCheckingIn(null);
     }
   };
 
@@ -49,6 +80,7 @@ export default function MeetingsPage() {
               key={meeting.id}
               meeting={meeting}
               onCheckIn={handleCheckIn}
+              isCheckedIn={checkedInMeetings.has(meeting.id)}
               canCheckIn={true}
             />
           ))}

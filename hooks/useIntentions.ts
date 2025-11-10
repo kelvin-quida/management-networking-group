@@ -35,7 +35,14 @@ export function useCreateIntention() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Failed to create intention');
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        const error = new Error(errorData.message || 'Failed to create intention');
+        (error as any).code = errorData.error;
+        throw error;
+      }
+      
       return res.json();
     },
     onSuccess: () => {
@@ -86,5 +93,25 @@ export function useRejectIntention() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.intentions.all });
     },
+  });
+}
+
+export function useIntentionStatus(email: string | null) {
+  return useQuery<{ intention: Intention }>({
+    queryKey: queryKeys.intentions.detail(email || ''),
+    queryFn: async () => {
+      if (!email) throw new Error('Email is required');
+      
+      const res = await fetch(`${API_URL}/status?email=${encodeURIComponent(email)}`);
+      if (!res.ok) {
+        if (res.status === 404) {
+          throw new Error('Nenhuma intenção encontrada para este email');
+        }
+        throw new Error('Failed to fetch intention status');
+      }
+      return res.json();
+    },
+    enabled: !!email,
+    retry: false,
   });
 }

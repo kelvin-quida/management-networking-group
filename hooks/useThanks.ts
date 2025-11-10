@@ -14,7 +14,8 @@ export function useThanks(memberId?: string) {
 
       const res = await fetch(`${API_URL}?${params}`);
       if (!res.ok) throw new Error('Failed to fetch thanks');
-      return res.json();
+      const data = await res.json();
+      return data.thanks || [];
     },
   });
 }

@@ -37,11 +37,12 @@ export async function GET(request: NextRequest) {
     ]);
 
     return createSuccessResponse({
-      members,
+      data: members,
       pagination: {
         page,
         limit,
         total,
+        totalPages: Math.ceil(total / limit!),
       },
     });
   } catch (error) {

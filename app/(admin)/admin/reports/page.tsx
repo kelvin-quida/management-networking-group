@@ -26,7 +26,7 @@ export default function AdminReportsPage() {
             <Select
               label="Período"
               value={period}
-              onChange={(e) => setPeriod(e.target.value)}
+              onValueChange={setPeriod}
               options={[
                 { value: 'weekly', label: 'Semanal' },
                 { value: 'monthly', label: 'Mensal' },
@@ -38,7 +38,7 @@ export default function AdminReportsPage() {
             <Select
               label="Ano"
               value={year}
-              onChange={(e) => setYear(e.target.value)}
+              onValueChange={setYear}
               options={[
                 { value: '2024', label: '2024' },
                 { value: '2023', label: '2023' },

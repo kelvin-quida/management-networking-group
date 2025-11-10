@@ -12,7 +12,8 @@ export function useEmails(limit = 50) {
         },
       });
       if (!res.ok) throw new Error('Failed to fetch emails');
-      return res.json();
+      const data = await res.json();
+      return data.emails || [];
     },
   });
 }

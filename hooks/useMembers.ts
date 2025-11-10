@@ -31,7 +31,8 @@ export function useMember(id: string) {
     queryFn: async () => {
       const res = await fetch(`${API_URL}/${id}`);
       if (!res.ok) throw new Error('Failed to fetch member');
-      return res.json();
+      const data = await res.json();
+      return data.member;
     },
     enabled: !!id,
   });
@@ -82,7 +83,8 @@ export function useUpdateMember(id: string) {
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error('Failed to update member');
-      return res.json();
+      const responseData = await res.json();
+      return responseData.member;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.members.all });

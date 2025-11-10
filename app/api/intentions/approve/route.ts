@@ -30,12 +30,17 @@ export async function POST(request: NextRequest) {
     const inviteToken = generateInviteToken();
     const tokenExpiry = generateTokenExpiry();
 
-    const [updatedIntention, member] = await prisma.$transaction([
-      prisma.intention.update({
+    const existingUser = await prisma.user.findUnique({
+      where: { email: intention.email },
+    });
+
+    const [updatedIntention, member] = await prisma.$transaction(async (tx) => {
+      const intention = await tx.intention.update({
         where: { id: data.intentionId },
         data: { status: 'APPROVED' },
-      }),
-      prisma.member.create({
+      });
+
+      const newMember = await tx.member.create({
         data: {
           name: intention.name,
           email: intention.email,
@@ -44,8 +49,20 @@ export async function POST(request: NextRequest) {
           tokenExpiry,
           intentionId: intention.id,
         },
-      }),
-    ]);
+      });
+
+      if (existingUser) {
+        await tx.user.update({
+          where: { id: existingUser.id },
+          data: {
+            role: 'MEMBER',
+            memberId: newMember.id,
+          },
+        });
+      }
+
+      return [intention, newMember];
+    });
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const registrationUrl = `${baseUrl}/register?token=${inviteToken}`;

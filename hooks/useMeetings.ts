@@ -15,7 +15,8 @@ export function useMeetings(from?: string, to?: string) {
 
       const res = await fetch(`${API_URL}?${params}`);
       if (!res.ok) throw new Error('Failed to fetch meetings');
-      return res.json();
+      const data = await res.json();
+      return data.meetings || [];
     },
   });
 }

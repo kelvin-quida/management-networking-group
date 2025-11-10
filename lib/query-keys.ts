@@ -29,6 +29,8 @@ export const queryKeys = {
     lists: () => [...queryKeys.intentions.all, 'list'] as const,
     list: (filters: { status?: string; page?: number; limit?: number }) =>
       [...queryKeys.intentions.lists(), filters] as const,
+    details: () => [...queryKeys.intentions.all, 'detail'] as const,
+    detail: (email: string) => [...queryKeys.intentions.details(), email] as const,
   },
 
   meetings: {

@@ -44,12 +44,12 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
           <SelectPrimitive.Trigger
             ref={ref}
             className={`
-              w-full px-3 py-2 border rounded-lg shadow-sm
+              w-full px-3 py-2 border rounded-lg shadow-sm text-black
               flex items-center justify-between
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
               disabled:bg-gray-100 disabled:cursor-not-allowed
               ${error ? 'border-red-500' : 'border-gray-300'}
-              data-[placeholder]:text-gray-400
+              data-placeholder:text-gray-400
             `}
           >
             <SelectPrimitive.Value placeholder={placeholder || 'Selecione...'} />
@@ -71,7 +71,7 @@ export const Select = React.forwardRef<HTMLButtonElement, SelectProps>(
                   <SelectPrimitive.Item
                     key={option.value}
                     value={option.value}
-                    className="relative flex items-center px-8 py-2 rounded cursor-pointer outline-none select-none hover:bg-blue-50 focus:bg-blue-50 data-[state=checked]:bg-blue-100 data-[state=checked]:font-medium"
+                    className="relative flex items-center px-8 py-2 rounded cursor-pointer outline-none select-none hover:bg-blue-50 focus:bg-blue-50 data-[state=checked]:bg-blue-100 data-[state=checked]:font-medium text-black"
                   >
                     <SelectPrimitive.ItemIndicator className="absolute left-2 inline-flex items-center">
                       <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">

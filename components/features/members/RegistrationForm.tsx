@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { Button, Input } from '@/components/ui';
 import { useToast } from '@/components/ui/Toast';
+import { registerMemberSchema } from '@/lib/validations/members';
+import { ZodError } from 'zod';
 
 interface RegistrationFormProps {
   token: string;
@@ -31,15 +33,23 @@ export const RegistrationForm = ({
     birthDate: '',
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     setIsLoading(true);
     
     try {
+      const validatedData = registerMemberSchema.parse({ 
+        token, 
+        ...formData 
+      });
+
       const response = await fetch('/api/members/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, ...formData }),
+        body: JSON.stringify(validatedData),
       });
 
       if (!response.ok) throw new Error();
@@ -47,7 +57,17 @@ export const RegistrationForm = ({
       showToast('Cadastro completado com sucesso!', 'success');
       onSuccess?.();
     } catch (error) {
-      showToast('Erro ao completar cadastro.', 'error');
+      if (error instanceof ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.issues.forEach((issue) => {
+          if (issue.path[0]) {
+            fieldErrors[issue.path[0].toString()] = issue.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        showToast('Erro ao completar cadastro.', 'error');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -70,67 +90,107 @@ export const RegistrationForm = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Input
-          label="Empresa"
-          name="company"
-          value={formData.company}
-          onChange={handleChange}
-          required
-          placeholder="Nome da empresa"
-        />
+        <div>
+          <Input
+            label="Empresa"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            placeholder="Nome da empresa"
+            className={errors.company ? 'border-red-500' : ''}
+          />
+          {errors.company && (
+            <p className="text-xs text-red-600 mt-1">{errors.company}</p>
+          )}
+        </div>
         
-        <Input
-          label="Cargo"
-          name="position"
-          value={formData.position}
-          onChange={handleChange}
-          required
-          placeholder="Seu cargo"
-        />
+        <div>
+          <Input
+            label="Cargo"
+            name="position"
+            value={formData.position}
+            onChange={handleChange}
+            placeholder="Seu cargo"
+            className={errors.position ? 'border-red-500' : ''}
+          />
+          {errors.position && (
+            <p className="text-xs text-red-600 mt-1">{errors.position}</p>
+          )}
+        </div>
       </div>
 
-      <Input
-        label="Endereço"
-        name="address"
-        value={formData.address}
-        onChange={handleChange}
-        placeholder="Rua, número, complemento"
-      />
+      <div>
+        <Input
+          label="Endereço"
+          name="address"
+          value={formData.address}
+          onChange={handleChange}
+          placeholder="Rua, número, complemento"
+          className={errors.address ? 'border-red-500' : ''}
+        />
+        {errors.address && (
+          <p className="text-xs text-red-600 mt-1">{errors.address}</p>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Input
-          label="Cidade"
-          name="city"
-          value={formData.city}
-          onChange={handleChange}
-          placeholder="Cidade"
-        />
+        <div>
+          <Input
+            label="Cidade"
+            name="city"
+            value={formData.city}
+            onChange={handleChange}
+            placeholder="Cidade"
+            className={errors.city ? 'border-red-500' : ''}
+          />
+          {errors.city && (
+            <p className="text-xs text-red-600 mt-1">{errors.city}</p>
+          )}
+        </div>
         
-        <Input
-          label="Estado"
-          name="state"
-          value={formData.state}
-          onChange={handleChange}
-          placeholder="UF"
-          maxLength={2}
-        />
+        <div>
+          <Input
+            label="Estado"
+            name="state"
+            value={formData.state}
+            onChange={handleChange}
+            placeholder="UF"
+            maxLength={2}
+            className={errors.state ? 'border-red-500' : ''}
+          />
+          {errors.state && (
+            <p className="text-xs text-red-600 mt-1">{errors.state}</p>
+          )}
+        </div>
         
-        <Input
-          label="CEP"
-          name="zipCode"
-          value={formData.zipCode}
-          onChange={handleChange}
-          placeholder="00000-000"
-        />
+        <div>
+          <Input
+            label="CEP"
+            name="zipCode"
+            value={formData.zipCode}
+            onChange={handleChange}
+            placeholder="00000-000"
+            className={errors.zipCode ? 'border-red-500' : ''}
+          />
+          {errors.zipCode && (
+            <p className="text-xs text-red-600 mt-1">{errors.zipCode}</p>
+          )}
+        </div>
       </div>
 
-      <Input
-        label="Data de Nascimento"
-        name="birthDate"
-        type="date"
-        value={formData.birthDate}
-        onChange={handleChange}
-      />
+      <div>
+        <Input
+          label="Data de Nascimento"
+          name="birthDate"
+          type="date"
+          value={formData.birthDate}
+          onChange={handleChange}
+          className={errors.birthDate ? 'border-red-500' : ''}
+        />
+        {errors.birthDate && (
+          <p className="text-xs text-red-600 mt-1">{errors.birthDate}</p>
+        )}
+      </div>
       
       <Button 
         type="submit" 

@@ -15,7 +15,8 @@ export function useNotices(type?: string, active?: boolean) {
 
       const res = await fetch(`${API_URL}?${params}`);
       if (!res.ok) throw new Error('Failed to fetch notices');
-      return res.json();
+      const data = await res.json();
+      return data.notices || [];
     },
   });
 }

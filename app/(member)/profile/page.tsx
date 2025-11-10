@@ -2,24 +2,62 @@
 
 import { Container } from '@/components/layout/Container';
 import { Card, CardHeader, CardTitle, CardContent, Input, Button } from '@/components/ui';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 
 export default function ProfilePage() {
   const { showToast } = useToast();
+  const { user, isPending: isAuthPending } = useAuth();
+  const { data: member, isLoading: isMemberLoading } = useProfile();
+  const updateMember = useUpdateProfile();
   const [isEditing, setIsEditing] = useState(false);
   
-  const [formData, setFormData] = useState({
-    name: 'João Silva',
-    email: 'joao@example.com',
-    phone: '+55 11 98765-4321',
-    company: 'Empresa XYZ',
-    position: 'Gerente',
-    address: 'Rua das Flores, 123',
-    city: 'São Paulo',
-    state: 'SP',
-    zipCode: '12345-678',
-  });
+  const initialData = useMemo(() => {
+    if (member) {
+      return {
+        name: member.name || '',
+        email: member.email || '',
+        phone: member.phone || '',
+        company: member.company || '',
+        position: member.position || '',
+        address: member.address || '',
+        city: member.city || '',
+        state: member.state || '',
+        zipCode: member.zipCode || '',
+      };
+    } else if (user && !user.memberId) {
+      return {
+        name: user.name || '',
+        email: user.email || '',
+        phone: '',
+        company: '',
+        position: '',
+        address: '',
+        city: '',
+        state: '',
+        zipCode: '',
+      };
+    }
+    return {
+      name: '',
+      email: '',
+      phone: '',
+      company: '',
+      position: '',
+      address: '',
+      city: '',
+      state: '',
+      zipCode: '',
+    };
+  }, [member, user]);
+
+  const [formData, setFormData] = useState(initialData);
+
+  if (!isEditing && JSON.stringify(formData) !== JSON.stringify(initialData)) {
+    setFormData(initialData);
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -31,13 +69,45 @@ export default function ProfilePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user?.memberId) {
+      showToast('Você precisa estar vinculado a um membro para atualizar o perfil.', 'error');
+      return;
+    }
+
     try {
+      await updateMember.mutateAsync(formData);
       showToast('Perfil atualizado com sucesso!', 'success');
       setIsEditing(false);
     } catch (error) {
       showToast('Erro ao atualizar perfil.', 'error');
+      console.error('Error updating profile:', error);
     }
   };
+
+  const isLoading = isAuthPending || isMemberLoading;
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Carregando perfil...</p>
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Container maxWidth="lg">
+        <div className="text-center py-12">
+          <p className="text-gray-600">Usuário não autenticado.</p>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg">
@@ -46,6 +116,13 @@ export default function ProfilePage() {
         <p className="mt-2 text-gray-600">
           Gerencie suas informações pessoais e profissionais
         </p>
+        {!user.memberId && (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-800 text-sm">
+              ⚠️ Seu usuário ainda não está vinculado a um membro do grupo. Entre em contato com o administrador.
+            </p>
+          </div>
+        )}
       </div>
 
       <Card>
@@ -77,7 +154,7 @@ export default function ProfilePage() {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                disabled={!isEditing}
+                disabled={true}
                 required
               />
             </div>
@@ -145,13 +222,21 @@ export default function ProfilePage() {
 
             {isEditing && (
               <div className="flex gap-3 pt-4">
-                <Button type="submit" variant="primary">
-                  Salvar Alterações
+                <Button 
+                  type="submit" 
+                  variant="primary"
+                  disabled={updateMember.isPending || !user.memberId}
+                >
+                  {updateMember.isPending ? 'Salvando...' : 'Salvar Alterações'}
                 </Button>
                 <Button 
                   type="button" 
                   variant="ghost"
-                  onClick={() => setIsEditing(false)}
+                  onClick={() => {
+                    setIsEditing(false);
+                    setFormData(initialData);
+                  }}
+                  disabled={updateMember.isPending}
                 >
                   Cancelar
                 </Button>

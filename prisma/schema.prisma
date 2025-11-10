@@ -48,6 +48,7 @@ model Member {
   oneOnOnesHost     OneOnOne[]      @relation("OneOnOneHost")
   oneOnOnesGuest    OneOnOne[]      @relation("OneOnOneGuest")
   memberships       Membership[]
+  user              User?
 
   @@index([status])
   @@index([email])
@@ -163,6 +164,62 @@ model EmailLog {
   @@index([sentAt])
 }
 
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          UserRole  @default(MEMBER)
+  memberId      String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  member        Member?   @relation(fields: [memberId], references: [id], onDelete: SetNull)
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  accountId         String
+  providerId        String
+  accessToken       String?
+  refreshToken      String?
+  idToken           String?
+  expiresAt         DateTime?
+  password          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+
+  @@unique([identifier, value])
+}
+
 enum IntentionStatus {
   PENDING
   APPROVED
@@ -207,4 +264,10 @@ enum MembershipStatus {
   PAID
   OVERDUE
   CANCELLED
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  GUEST
 }

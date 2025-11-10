@@ -1,10 +1,23 @@
 import { z } from 'zod';
 
 export const createIntentionSchema = z.object({
-  name: z.string().min(3, { error: 'Nome deve ter no mínimo 3 caracteres' }),
-  email: z.email({ error: 'Email inválido' }),
-  phone: z.string().optional(),
-  message: z.string().optional(),
+  name: z
+    .string()
+    .min(3, 'Nome deve ter no mínimo 3 caracteres')
+    .max(100, 'Nome deve ter no máximo 100 caracteres')
+    .trim(),
+  email: z
+    .email('Email inválido')
+    .toLowerCase()
+    .trim(),
+  phone: z
+    .string()
+    .optional()
+    .transform(val => val || undefined),
+  message: z
+    .string()
+    .optional()
+    .transform(val => val || undefined),
 });
 
 export const approveIntentionSchema = z.object({

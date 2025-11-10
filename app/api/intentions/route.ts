@@ -15,7 +15,10 @@ export async function POST(request: NextRequest) {
 
     if (existing) {
       return Response.json(
-        { error: 'Email já cadastrado' },
+        { 
+          error: 'DUPLICATE_EMAIL',
+          message: 'Você já enviou uma intenção de participação. Consulte o status em /intentions/status' 
+        },
         { status: 400 }
       );
     }
@@ -79,11 +82,12 @@ export async function GET(request: NextRequest) {
     ]);
 
     return createSuccessResponse({
-      intentions,
+      data: intentions,
       pagination: {
         page,
         limit,
         total,
+        totalPages: Math.ceil(total / limit!),
       },
     });
   } catch (error) {

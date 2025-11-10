@@ -116,10 +116,10 @@ export default function DashboardPage() {
                   Agradecimentos do Mês
                 </p>
                 <p className="mt-2 text-4xl font-bold text-gray-900">
-                  {Math.floor((stats?.totalReferrals || 0) * 0.3)}
+                  {stats?.monthlyThanks || 0}
                 </p>
                 <p className="mt-1 text-sm text-gray-500">
-                  registrados publicamente
+                  {stats?.totalThanks || 0} total registrados
                 </p>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">

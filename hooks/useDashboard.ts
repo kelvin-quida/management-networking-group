@@ -20,6 +20,8 @@ export type GroupDashboard = {
     closedReferrals?: number;
     totalBusinessGenerated?: number;
     monthlyGrowth?: number;
+    totalThanks?: number;
+    monthlyThanks?: number;
   };
   topPerformers?: Array<{
     member: {

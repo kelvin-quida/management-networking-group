@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-    const [currentMonthMembers, lastMonthMembers] = await Promise.all([
+    const [currentMonthMembers, lastMonthMembers, totalThanks, monthlyThanks] = await Promise.all([
       prisma.member.count({
         where: { createdAt: { gte: startOfMonth } },
       }),
@@ -30,6 +30,10 @@ export async function GET(request: NextRequest) {
             lt: startOfMonth,
           },
         },
+      }),
+      prisma.thank.count(),
+      prisma.thank.count({
+        where: { createdAt: { gte: startOfMonth } },
       }),
     ]);
 
@@ -44,6 +48,8 @@ export async function GET(request: NextRequest) {
         activeMembers,
         averageAttendance: parseFloat(averageAttendance.toFixed(2)),
         monthlyGrowth: parseFloat(monthlyGrowth.toFixed(2)),
+        totalThanks,
+        monthlyThanks,
       },
     });
   } catch (error) {

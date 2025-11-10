@@ -3,9 +3,73 @@
 import { useOneOnOnes } from '@/hooks/useOneOnOnes';
 import { Container } from '@/components/layout/Container';
 import { Card, CardContent, Badge, Button } from '@/components/ui';
+import { useToast } from '@/components/ui/Toast';
+import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/lib/query-keys';
 
 export default function OneOnOnesPage() {
   const { data: oneOnOnes, isLoading } = useOneOnOnes();
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const handleComplete = async (id: string) => {
+    setUpdatingId(id);
+
+    try {
+      const response = await fetch(`/api/one-on-ones/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          status: 'COMPLETED', 
+          completedAt: new Date().toISOString() 
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao marcar como concluída');
+      }
+
+      showToast('Reunião marcada como concluída com sucesso!', 'success');
+      queryClient.invalidateQueries({ queryKey: queryKeys.oneOnOnes.all });
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : 'Não foi possível marcar a reunião como concluída.',
+        'error'
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleCancel = async (id: string) => {
+    setUpdatingId(id);
+
+    try {
+      const response = await fetch(`/api/one-on-ones/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'CANCELLED' }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao cancelar reunião');
+      }
+
+      showToast('Reunião cancelada com sucesso!', 'success');
+      queryClient.invalidateQueries({ queryKey: queryKeys.oneOnOnes.all });
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : 'Não foi possível cancelar a reunião.',
+        'error'
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const statusVariant = {
     SCHEDULED: 'warning' as const,
@@ -82,10 +146,22 @@ export default function OneOnOnesPage() {
 
                 {meeting.status === 'SCHEDULED' && (
                   <div className="flex gap-2">
-                    <Button size="sm" variant="primary" className="flex-1">
-                      Marcar como Concluído
+                    <Button 
+                      size="sm" 
+                      variant="primary" 
+                      className="flex-1"
+                      onClick={() => handleComplete(meeting.id)}
+                      disabled={updatingId === meeting.id}
+                    >
+                      {updatingId === meeting.id ? 'Concluindo...' : 'Marcar como Concluído'}
                     </Button>
-                    <Button size="sm" variant="ghost" className="flex-1">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="flex-1"
+                      onClick={() => handleCancel(meeting.id)}
+                      disabled={updatingId === meeting.id}
+                    >
                       Cancelar
                     </Button>
                   </div>

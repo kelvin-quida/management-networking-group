@@ -40,9 +40,9 @@ docker-compose up -d
 4. Configure as variáveis de ambiente (`.env`):
 
 ```env
-DATABASE_URL="postgresql://admin:admin123@localhost:5432/management_networking_group"
-BETTER_AUTH_SECRET="seu-secret-key-aqui"
+DATABASE_URL="postgresql://admin:admin123@localhost:5432/management_networking_group?schema=public"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+BETTER_AUTH_SECRET="secret-key"
 ```
 
 5. Execute as migrations do banco de dados:

@@ -2,10 +2,11 @@ import type { Config } from 'jest';
 
 const config: Config = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   testMatch: [
     '**/__tests__/**/*.test.ts',
@@ -13,9 +14,13 @@ const config: Config = {
   ],
   collectCoverageFrom: [
     'app/api/**/*.ts',
+    'components/**/*.{ts,tsx}',
+    'hooks/**/*.ts',
     '!app/api/**/*.test.ts',
+    '!**/__tests__/**',
     '!**/node_modules/**',
     '!**/.next/**',
+    '!**/types.ts',
   ],
 
   coverageThreshold: {

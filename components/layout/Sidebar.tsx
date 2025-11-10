@@ -21,7 +21,19 @@ export const Sidebar = ({ items }: SidebarProps) => {
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen">
       <nav className="p-4 space-y-1">
         {items.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          let isActive = false;
+          
+          if (pathname === item.href) {
+            isActive = true;
+          } else if (pathname.startsWith(item.href + '/')) {
+            const hasMoreSpecificMatch = items.some(
+              (otherItem) => 
+                otherItem.href !== item.href && 
+                otherItem.href.startsWith(item.href) && 
+                pathname.startsWith(otherItem.href)
+            );
+            isActive = !hasMoreSpecificMatch;
+          }
           
           return (
             <Link

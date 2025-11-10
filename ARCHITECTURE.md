@@ -88,12 +88,16 @@ O sistema abrange todo o ciclo de vida de um grupo de networking: desde a admiss
 │  │ Intentions │  │  Members   │  │   Notices  │  │  Meetings  │      │
 │  └────────────┘  └────────────┘  └────────────┘  └────────────┘      │
 │                                                                         │
+│  ┌────────────┐  ┌────────────┐  ┌────────────┐                     │
+│  │Attendances │  │  Thanks    │  │ OneOnOnes  │                     │
+│  └────────────┘  └────────────┘  └────────────┘                     │
+│                                                                         │
 │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────┐      │
-│  │Attendances │  │ Referrals  │  │  Thanks    │  │ OneOnOnes  │      │
+│  │Memberships │  │ EmailLogs  │  │   Users    │  │  Sessions  │      │
 │  └────────────┘  └────────────┘  └────────────┘  └────────────┘      │
 │                                                                         │
 │  ┌────────────┐  ┌────────────┐                                       │
-│  │Memberships │  │ EmailLogs  │                                       │
+│  │  Accounts  │  │Verification│                                       │
 │  └────────────┘  └────────────┘                                       │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -143,20 +147,26 @@ graph TB
         end
         
         subgraph DB3["Negócios"]
-            T6[(Referrals)]
-            T7[(Thanks)]
+            T6[(Thanks)]
         end
         
         subgraph DB4["Performance"]
-            T8[(OneOnOnes)]
+            T7[(OneOnOnes)]
         end
         
         subgraph DB5["Financeiro"]
-            T9[(Memberships)]
+            T8[(Memberships)]
         end
         
-        subgraph DB6["Sistema"]
-            T10[(EmailLogs)]
+        subgraph DB6["Autenticação"]
+            T9[(Users)]
+            T10[(Sessions)]
+            T11[(Accounts)]
+            T12[(Verification)]
+        end
+        
+        subgraph DB7["Sistema"]
+            T13[(EmailLogs)]
         end
     end
 
@@ -185,10 +195,13 @@ graph TB
     API2 -->|Prisma| T4
     API2 -->|Prisma| T5
     API3 -->|Prisma| T6
-    API3 -->|Prisma| T7
-    API4 -->|Prisma| T8
-    API5 -->|Prisma| T9
-    EMAIL -->|Prisma| T10
+    API4 -->|Prisma| T7
+    API5 -->|Prisma| T8
+    AUTH -->|Prisma| T9
+    AUTH -->|Prisma| T10
+    AUTH -->|Prisma| T11
+    AUTH -->|Prisma| T12
+    EMAIL -->|Prisma| T13
 
     %% Estilos
     style Frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
@@ -216,7 +229,8 @@ graph TB
     style DB3 fill:#c8e6c9
     style DB4 fill:#c8e6c9
     style DB5 fill:#c8e6c9
-    style DB6 fill:#e0e0e0
+    style DB6 fill:#fff9c4
+    style DB7 fill:#e0e0e0
     style T1 fill:#81c784
     style T2 fill:#81c784
     style T3 fill:#81c784
@@ -225,8 +239,11 @@ graph TB
     style T6 fill:#81c784
     style T7 fill:#81c784
     style T8 fill:#81c784
-    style T9 fill:#81c784
-    style T10 fill:#bdbdbd
+    style T9 fill:#fff59d
+    style T10 fill:#fff59d
+    style T11 fill:#fff59d
+    style T12 fill:#fff59d
+    style T13 fill:#bdbdbd
 ```
 
 ### 2.2 Estrutura de Componentes (Frontend)
@@ -239,10 +256,13 @@ graph TB
 src/
 ├── app/                                    # Next.js App Router
 │   ├── api/                                # API Routes
+│   │   ├── auth/
+│   │   │   └── [...all]/route.ts           # Better Auth routes
 │   │   ├── intentions/
 │   │   │   ├── route.ts                    # POST, GET intentions
 │   │   │   ├── approve/route.ts            # POST approve
-│   │   │   └── reject/route.ts             # POST reject
+│   │   │   ├── reject/route.ts             # POST reject
+│   │   │   └── status/route.ts             # GET status by email
 │   │   ├── members/
 │   │   │   ├── route.ts                    # GET members list
 │   │   │   ├── [id]/route.ts               # GET, PATCH, DELETE member
@@ -258,10 +278,6 @@ src/
 │   │   ├── attendances/
 │   │   │   ├── route.ts                    # GET attendances
 │   │   │   └── stats/route.ts              # GET attendance stats
-│   │   ├── referrals/
-│   │   │   ├── route.ts                    # GET, POST referrals
-│   │   │   ├── [id]/route.ts               # GET, PATCH referral
-│   │   │   └── stats/route.ts              # GET referral stats
 │   │   ├── thanks/
 │   │   │   ├── route.ts                    # GET, POST thanks
 │   │   │   └── [id]/route.ts               # GET, DELETE thank
@@ -280,16 +296,18 @@ src/
 │   │
 │   ├── (public)/                           # Public routes
 │   │   ├── page.tsx                        # Home (intention form)
-│   │   ├── register/page.tsx               # Registration page
+│   │   ├── login/page.tsx                  # Login page
+│   │   ├── signup/page.tsx                 # Signup page
+│   │   ├── pending/page.tsx                # Pending approval page
+│   │   ├── register/page.tsx               # Registration page (token)
+│   │   ├── intentions/
+│   │   │   └── status/page.tsx             # Check intention status
 │   │   └── layout.tsx                      # Public layout
 │   │
 │   ├── (member)/                           # Member routes (auth required)
 │   │   ├── dashboard/page.tsx              # Member dashboard
 │   │   ├── notices/page.tsx                # Notices list
 │   │   ├── meetings/page.tsx               # Meetings list
-│   │   ├── referrals/
-│   │   │   ├── page.tsx                    # My referrals
-│   │   │   └── new/page.tsx                # Create referral
 │   │   ├── thanks/page.tsx                 # Thanks feed
 │   │   ├── one-on-ones/page.tsx            # 1-on-1 meetings
 │   │   ├── profile/page.tsx                # My profile
@@ -306,7 +324,6 @@ src/
 │   │   │   ├── meetings/
 │   │   │   │   ├── page.tsx                # Manage meetings
 │   │   │   │   └── new/page.tsx            # Create meeting
-│   │   │   ├── referrals/page.tsx          # All referrals
 │   │   │   ├── memberships/page.tsx        # Financial control
 │   │   │   ├── reports/page.tsx            # Reports
 │   │   │   └── emails/page.tsx             # Email logs
@@ -325,6 +342,11 @@ src/
 │   │   ├── Modal.tsx
 │   │   └── Toast.tsx
 │   │
+│   ├── auth/                               # Auth components
+│   │   ├── AdminGuard.tsx
+│   │   ├── MemberGuard.tsx
+│   │   └── PendingGuard.tsx
+│   │
 │   ├── features/                           # Feature components
 │   │   ├── intentions/
 │   │   │   ├── IntentionForm.tsx
@@ -332,41 +354,17 @@ src/
 │   │   │   └── IntentionCard.tsx
 │   │   ├── members/
 │   │   │   ├── RegistrationForm.tsx
-│   │   │   ├── MemberCard.tsx
-│   │   │   ├── MembersList.tsx
-│   │   │   └── MemberProfile.tsx
+│   │   │   └── MemberCard.tsx
 │   │   ├── notices/
-│   │   │   ├── NoticeForm.tsx
-│   │   │   ├── NoticeCard.tsx
-│   │   │   └── NoticesList.tsx
+│   │   │   └── NoticeCard.tsx
 │   │   ├── meetings/
-│   │   │   ├── MeetingForm.tsx
-│   │   │   ├── MeetingCard.tsx
-│   │   │   ├── CheckInButton.tsx
-│   │   │   └── AttendanceList.tsx
-│   │   ├── referrals/
-│   │   │   ├── ReferralForm.tsx
-│   │   │   ├── ReferralCard.tsx
-│   │   │   ├── ReferralsList.tsx
-│   │   │   └── ReferralStatusBadge.tsx
+│   │   │   └── MeetingCard.tsx
 │   │   ├── thanks/
-│   │   │   ├── ThankForm.tsx
-│   │   │   ├── ThankCard.tsx
-│   │   │   └── ThanksFeed.tsx
+│   │   │   └── ThankCard.tsx
 │   │   ├── one-on-ones/
-│   │   │   ├── OneOnOneForm.tsx
-│   │   │   ├── OneOnOneCard.tsx
-│   │   │   └── OneOnOnesList.tsx
-│   │   ├── memberships/
-│   │   │   ├── MembershipCard.tsx
-│   │   │   ├── PaymentForm.tsx
-│   │   │   └── PaymentHistory.tsx
+│   │   │   └── ScheduleOneOnOneModal.tsx
 │   │   └── dashboard/
-│   │       ├── MemberDashboard.tsx
-│   │       ├── GroupDashboard.tsx
-│   │       ├── StatsCard.tsx
-│   │       ├── PerformanceChart.tsx
-│   │       └── ReportsTable.tsx
+│   │       └── StatsCard.tsx
 │   │
 │   └── layout/                             # Layout components
 │       ├── Header.tsx
@@ -375,12 +373,13 @@ src/
 │       └── Navigation.tsx
 │
 ├── hooks/                                  # React Query Hooks
+│   ├── useAuth.ts                          # Auth hook (Better Auth)
 │   ├── useIntentions.ts
 │   ├── useMembers.ts
+│   ├── useMemberProfile.ts
 │   ├── useNotices.ts
 │   ├── useMeetings.ts
 │   ├── useAttendances.ts
-│   ├── useReferrals.ts
 │   ├── useThanks.ts
 │   ├── useOneOnOnes.ts
 │   ├── useMemberships.ts
@@ -389,12 +388,14 @@ src/
 │
 ├── lib/                                    # Utilities & Core Logic
 │   ├── prisma.ts                           # Prisma client singleton
+│   ├── types.ts                            # TypeScript types (centralized)
+│   ├── query-keys.ts                       # React Query key factories
 │   ├── validations/                        # Zod schemas
+│   │   ├── auth.ts
 │   │   ├── intentions.ts
 │   │   ├── members.ts
 │   │   ├── notices.ts
 │   │   ├── meetings.ts
-│   │   ├── referrals.ts
 │   │   ├── thanks.ts
 │   │   ├── one-on-ones.ts
 │   │   └── memberships.ts
@@ -405,18 +406,10 @@ src/
 │   ├── reports.ts                          # Report generation
 │   └── utils.ts                            # Helper functions
 │
-├── types/                                  # TypeScript types
-│   ├── intentions.ts
-│   ├── members.ts
-│   ├── notices.ts
-│   ├── meetings.ts
-│   ├── referrals.ts
-│   ├── thanks.ts
-│   ├── one-on-ones.ts
-│   └── memberships.ts
+├── providers/
+│   └── QueryProvider.tsx                   # React Query provider
 │
-└── providers/
-    └── QueryProvider.tsx                   # React Query provider
+└── middleware.ts                           # Route protection middleware
 
 prisma/
 ├── schema.prisma                           # Database schema
@@ -475,13 +468,12 @@ model Member {
   
   // Relacionamentos
   attendances       Attendance[]
-  referralsGiven    Referral[]      @relation("ReferralFrom")
-  referralsReceived Referral[]      @relation("ReferralTo")
   thanksGiven       Thank[]         @relation("ThankFrom")
   thanksReceived    Thank[]         @relation("ThankTo")
   oneOnOnesHost     OneOnOne[]      @relation("OneOnOneHost")
   oneOnOnesGuest    OneOnOne[]      @relation("OneOnOneGuest")
   memberships       Membership[]
+  user              User?
 
   @@index([status])
   @@index([email])
@@ -541,39 +533,12 @@ model Attendance {
 // 3. GERAÇÃO DE NEGÓCIOS
 // ============================================
 
-model Referral {
-  id              String         @id @default(cuid())
-  fromMemberId    String
-  fromMember      Member         @relation("ReferralFrom", fields: [fromMemberId], references: [id], onDelete: Cascade)
-  toMemberId      String
-  toMember        Member         @relation("ReferralTo", fields: [toMemberId], references: [id], onDelete: Cascade)
-  clientName      String
-  clientContact   String
-  description     String         @db.Text
-  estimatedValue  Decimal?       @db.Decimal(10, 2)
-  actualValue     Decimal?       @db.Decimal(10, 2)
-  status          ReferralStatus @default(SENT)
-  statusUpdatedAt DateTime       @default(now())
-  notes           String?        @db.Text
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  
-  thanks          Thank[]
-
-  @@index([fromMemberId])
-  @@index([toMemberId])
-  @@index([status])
-  @@index([createdAt])
-}
-
 model Thank {
   id          String   @id @default(cuid())
   fromMemberId String
   fromMember  Member   @relation("ThankFrom", fields: [fromMemberId], references: [id], onDelete: Cascade)
   toMemberId  String
   toMember    Member   @relation("ThankTo", fields: [toMemberId], references: [id], onDelete: Cascade)
-  referralId  String?
-  referral    Referral? @relation(fields: [referralId], references: [id], onDelete: SetNull)
   message     String   @db.Text
   value       Decimal? @db.Decimal(10, 2)
   isPublic    Boolean  @default(true)
@@ -630,6 +595,66 @@ model Membership {
 }
 
 // ============================================
+// AUTENTICAÇÃO (Better Auth)
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          UserRole  @default(MEMBER)
+  memberId      String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  member        Member?   @relation(fields: [memberId], references: [id], onDelete: SetNull)
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  accountId         String
+  providerId        String
+  accessToken       String?
+  refreshToken      String?
+  idToken           String?
+  expiresAt         DateTime?
+  password          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+
+  @@unique([identifier, value])
+}
+
+// ============================================
 // SISTEMA
 // ============================================
 
@@ -681,13 +706,6 @@ enum MeetingType {
   SOCIAL
 }
 
-enum ReferralStatus {
-  SENT
-  IN_NEGOTIATION
-  CLOSED
-  LOST
-}
-
 enum OneOnOneStatus {
   SCHEDULED
   COMPLETED
@@ -700,31 +718,44 @@ enum MembershipStatus {
   OVERDUE
   CANCELLED
 }
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  GUEST
+}
 ```
 
 ### 3.2 Relacionamentos e Justificativas
 
 #### **1. Gestão de Membros**
 - **Intention → Member** (1:1): Uma intenção aprovada gera exatamente um membro
+- **User → Member** (1:1 opcional): Usuário autenticado pode estar vinculado a um membro
 - **Cascade delete**: Deletar intenção remove o membro associado
+- **SetNull**: Deletar membro mantém o usuário mas remove vínculo
 
 #### **2. Comunicação e Engajamento**
 - **Meeting → Attendance** (1:N): Uma reunião tem múltiplas presenças
 - **Member → Attendance** (1:N): Um membro tem múltiplas presenças
-- **Unique constraint** em (memberId, meetingId): Previne duplicatas
+- **Unique constraint** em (memberId, meetingId): Previne duplicatas de check-in
 
 #### **3. Geração de Negócios**
-- **Member → Referral** (1:N): Um membro pode dar/receber múltiplas indicações
-- **Referral → Thank** (1:N): Uma indicação pode gerar múltiplos agradecimentos
 - **Member → Thank** (1:N): Um membro pode dar/receber múltiplos agradecimentos
+- **Cascade delete**: Deletar membro remove agradecimentos associados
 
 #### **4. Acompanhamento e Performance**
-- **Member → OneOnOne** (1:N): Um membro pode ser host ou guest em múltiplas reuniões 1-on-1
-- **Unique constraint** implícito: Evita duplicatas por lógica de negócio
+- **Member → OneOnOne** (1:N): Um membro pode ser host ou guest em múltiplas reuniões 1:1
+- **Cascade delete**: Deletar membro remove suas reuniões 1:1
 
 #### **5. Financeiro**
 - **Member → Membership** (1:N): Um membro tem múltiplas mensalidades ao longo do tempo
 - **Cascade delete**: Deletar membro remove suas mensalidades
+
+#### **6. Autenticação (Better Auth)**
+- **User → Account** (1:N): Um usuário pode ter múltiplas contas (providers)
+- **User → Session** (1:N): Um usuário pode ter múltiplas sessões ativas
+- **Cascade delete**: Deletar usuário remove contas e sessões
+- **UserRole enum**: Controle de acesso (ADMIN, MEMBER, GUEST)
 
 ### 3.3 Justificativa da Escolha do PostgreSQL
 
@@ -1035,91 +1066,6 @@ Estatísticas de presença.
 
 ### 4.4 Geração de Negócios
 
-#### **POST /api/referrals**
-Cria uma nova indicação.
-
-**Request:**
-```json
-{
-  "fromMemberId": "clq...",
-  "toMemberId": "clq...",
-  "clientName": "Empresa ABC",
-  "clientContact": "contato@abc.com",
-  "description": "Cliente interessado em...",
-  "estimatedValue": 5000.00
-}
-```
-
-**Response (201):**
-```json
-{
-  "message": "Indicação criada com sucesso!",
-  "referral": {
-    "id": "clq...",
-    "status": "SENT",
-    "createdAt": "2024-01-01T00:00:00Z"
-  }
-}
-```
-
-#### **GET /api/referrals**
-Lista indicações.
-
-**Query params:** `?memberId=clq...&status=IN_NEGOTIATION`
-
-**Response (200):**
-```json
-{
-  "referrals": [
-    {
-      "id": "clq...",
-      "fromMember": { "id": "clq...", "name": "João Silva" },
-      "toMember": { "id": "clq...", "name": "Maria Santos" },
-      "clientName": "Empresa ABC",
-      "status": "IN_NEGOTIATION",
-      "estimatedValue": 5000.00,
-      "createdAt": "2024-01-01T00:00:00Z"
-    }
-  ]
-}
-```
-
-#### **PATCH /api/referrals/[id]**
-Atualiza status de uma indicação.
-
-**Request:**
-```json
-{
-  "status": "CLOSED",
-  "actualValue": 5500.00,
-  "notes": "Negócio fechado com sucesso!"
-}
-```
-
-#### **GET /api/referrals/stats**
-Estatísticas de indicações.
-
-**Query params:** `?memberId=clq...&period=monthly`
-
-**Response (200):**
-```json
-{
-  "stats": {
-    "totalReferrals": 25,
-    "sent": 15,
-    "inNegotiation": 5,
-    "closed": 5,
-    "conversionRate": 20.0,
-    "totalValue": 125000.00,
-    "byStatus": {
-      "SENT": 15,
-      "IN_NEGOTIATION": 5,
-      "CLOSED": 5
-    }
-  }
-}
-```
-
 #### **POST /api/thanks**
 Cria um agradecimento público.
 
@@ -1128,7 +1074,6 @@ Cria um agradecimento público.
 {
   "fromMemberId": "clq...",
   "toMemberId": "clq...",
-  "referralId": "clq...",
   "message": "Obrigado pela indicação!",
   "value": 5500.00,
   "isPublic": true
@@ -1223,12 +1168,10 @@ Dashboard individual de um membro.
   "member": { "id": "clq...", "name": "João Silva" },
   "stats": {
     "attendanceRate": 85.5,
-    "referralsGiven": 10,
-    "referralsReceived": 8,
-    "referralsClosed": 3,
+    "thanksGiven": 10,
+    "thanksReceived": 8,
     "totalBusinessGenerated": 25000.00,
-    "oneOnOnesCompleted": 5,
-    "thanksReceived": 3
+    "oneOnOnesCompleted": 5
   },
   "recentActivity": [...]
 }
@@ -1244,15 +1187,14 @@ Dashboard do grupo.
     "totalMembers": 120,
     "activeMembers": 115,
     "averageAttendance": 82.3,
-    "totalReferrals": 450,
-    "closedReferrals": 95,
+    "totalThanks": 450,
     "totalBusinessGenerated": 1250000.00,
     "monthlyGrowth": 5.2
   },
   "topPerformers": [
     {
       "member": { "id": "clq...", "name": "João Silva" },
-      "referralsClosed": 15,
+      "thanksReceived": 15,
       "businessGenerated": 75000.00
     }
   ]
@@ -1274,8 +1216,7 @@ Gera relatórios por período.
       "members": 120,
       "meetings": 4,
       "averageAttendance": 85.0,
-      "referrals": 38,
-      "closedReferrals": 8,
+      "thanks": 38,
       "businessGenerated": 105000.00
     }
   ]

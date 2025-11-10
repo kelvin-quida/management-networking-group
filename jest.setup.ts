@@ -1,8 +1,43 @@
 import '@testing-library/jest-dom';
+import 'dotenv/config';
 
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
-process.env.BETTER_AUTH_SECRET = 'test-secret-key-for-testing';
-process.env.BETTER_AUTH_URL = 'http://localhost:3000';
+if (typeof global.Response === 'undefined') {
+  global.Response = class Response {
+    private _body: any;
+    private _init: ResponseInit;
+
+    constructor(body?: BodyInit | null, init?: ResponseInit) {
+      this._body = body;
+      this._init = init || {};
+    }
+
+    static json(data: any, init?: ResponseInit): Response {
+      return new Response(JSON.stringify(data), {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(init?.headers || {}),
+        },
+      });
+    }
+
+    get status() {
+      return this._init.status || 200;
+    }
+
+    get ok() {
+      return this.status >= 200 && this.status < 300;
+    }
+
+    async json() {
+      return JSON.parse(this._body as string);
+    }
+
+    async text() {
+      return this._body as string;
+    }
+  } as any;
+}
 
 global.console.error = jest.fn();
 

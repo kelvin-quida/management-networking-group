@@ -4,13 +4,17 @@ Sistema completo de gerenciamento para grupos de networking, desenvolvido com Ne
 
 ## 🚀 Tecnologias
 
-- **Next.js 15** - Framework React com App Router
+- **Next.js 15** - Framework React com App Router e Turbopack
 - **TypeScript** - Tipagem estática
 - **Prisma** - ORM para banco de dados
 - **PostgreSQL** - Banco de dados relacional
-- **Better Auth** - Sistema de autenticação moderno
+- **Better Auth** - Sistema de autenticação moderno com roles
 - **TanStack Query** - Gerenciamento de estado assíncrono
 - **Tailwind CSS** - Estilização
+- **Radix UI** - Componentes acessíveis (Dialog, Select, Toast)
+- **Zod** - Validação de schemas
+- **Jest** - Framework de testes
+- **React Testing Library** - Testes de componentes
 
 ## 📋 Pré-requisitos
 
@@ -67,6 +71,29 @@ pnpm dev
 
 Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 
+## 🔐 Credenciais de Acesso
+
+Após executar `pnpm admin:create`, use as seguintes credenciais para acessar o painel administrativo:
+
+- **Email:** admin@networking.com
+- **Senha:** admin123456
+- **Role:** ADMIN
+
+### Sistema de Roles
+
+O sistema possui três níveis de acesso:
+
+- **GUEST** - Usuário recém-cadastrado, aguardando aprovação
+- **MEMBER** - Membro aprovado com acesso ao portal
+- **ADMIN** - Administrador com acesso total ao sistema
+
+### Fluxo de Aprovação
+
+1. Usuário se cadastra via `/signup` → role **GUEST**
+2. Usuário é redirecionado para `/pending` → envia intenção de participação via home (`/`)
+3. Admin aprova intenção → usuário recebe role **MEMBER** e `memberId`
+4. Usuário pode acessar o portal de membros (`/dashboard`)
+
 ## 📦 Funcionalidades
 
 ### Gerenciamento de Membros
@@ -76,8 +103,10 @@ Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 
 ### Reuniões
 - Agendamento de reuniões
-- Controle de presença
+- Sistema de check-in para membros
+- Controle de presença em tempo real
 - Histórico de participação
+- Atualização automática do status de check-in
 
 ### Avisos e Comunicados
 - Sistema de notificações
@@ -90,8 +119,10 @@ Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 - Visibilidade pública/privada
 
 ### One-on-One
-- Agendamento de reuniões individuais
-- Acompanhamento de status
+- Agendamento de reuniões individuais via modal
+- Seleção de membro, data, horário e notas
+- Marcar reuniões como concluídas ou canceladas
+- Acompanhamento de status (SCHEDULED, COMPLETED, CANCELLED)
 - Notas e observações
 
 ### Mensalidades
@@ -103,10 +134,16 @@ Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 - Métricas de performance do grupo
 - Top performers
 - Indicadores de crescimento
+- Atualização automática após ações administrativas
+- Invalidação inteligente de queries com TanStack Query
 
 ## 🗂️ Estrutura do Projeto
 
 ```
+├── __tests__/            # Testes de integração
+│   ├── api/              # Testes de API routes
+│   ├── components/       # Testes de componentes
+│   └── hooks/            # Testes de hooks
 ├── app/
 │   ├── (admin)/          # Rotas administrativas
 │   ├── (member)/         # Rotas de membros
@@ -122,7 +159,8 @@ Acesse [http://localhost:3000](http://localhost:3000) no navegador.
 │   ├── auth-config.ts    # Configuração Better Auth
 │   ├── auth-client.ts    # Cliente Better Auth
 │   ├── prisma.ts         # Cliente Prisma
-│   ├── types.ts          # Tipos TypeScript
+│   ├── types.ts          # Tipos TypeScript centralizados
+│   ├── query-keys.ts     # Query Key Factories (TanStack Query)
 │   └── validations/      # Schemas Zod
 ├── prisma/
 │   ├── schema.prisma     # Schema do banco de dados
@@ -140,6 +178,11 @@ pnpm dev              # Inicia servidor de desenvolvimento
 pnpm build            # Build para produção
 pnpm start            # Inicia servidor de produção
 
+# Testes
+pnpm test             # Executa todos os testes
+pnpm test:watch       # Executa testes em modo watch
+pnpm test:coverage    # Executa testes com cobertura
+
 # Docker
 docker-compose up -d  # Inicia PostgreSQL em background
 docker-compose down   # Para o PostgreSQL
@@ -153,8 +196,8 @@ pnpm db:seed          # Popula banco com dados
 pnpm db:studio        # Abre Prisma Studio
 pnpm db:reset         # Reseta banco de dados
 pnpm admin:create     # Cria usuário admin
+pnpm admin:make       # Transforma usuário existente em admin
 
 # Qualidade de Código
 pnpm lint             # Executa ESLint
 ```
-

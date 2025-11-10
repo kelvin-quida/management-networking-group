@@ -7,12 +7,14 @@ import { useToast } from '@/components/ui/Toast';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/query-keys';
+import { ScheduleOneOnOneModal } from '@/components/features/one-on-ones/ScheduleOneOnOneModal';
 
 export default function OneOnOnesPage() {
   const { data: oneOnOnes, isLoading } = useOneOnOnes();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleComplete = async (id: string) => {
     setUpdatingId(id);
@@ -92,8 +94,13 @@ export default function OneOnOnesPage() {
             Agende e acompanhe suas reuniões individuais com outros membros
           </p>
         </div>
-        <Button>Agendar Reunião</Button>
+        <Button onClick={() => setIsModalOpen(true)}>Agendar Reunião</Button>
       </div>
+
+      <ScheduleOneOnOneModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
